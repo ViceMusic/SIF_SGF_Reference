@@ -1,0 +1,28 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Python version
+.python-version
+
+# UV lock file
+uv.lock
+
+# Log files
+*.log
+visualization.log
+feature_extraction.log
+
+# Claude Code local configuration
+.claude/
+CLAUDE.md
+
+# Generated outputs (optional - uncomment if you don't want to commit outputs)
+# outputs/
