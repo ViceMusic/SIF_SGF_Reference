@@ -3,6 +3,8 @@ import argparse
 from code.extract import test, process_by_raw_csv
 from code.predict import test1, predict_by_processed_data
 
+# 该内容暂时废弃状态，请直接使用 start.py 来执行整个流程，start.py 会调用 inference.py 和 inference_base.py 中的预测函数。
+
 def main():
     # 1. 创建参数解析器
     parser = argparse.ArgumentParser(description="Pipeline for feature extraction and prediction")

@@ -34,6 +34,7 @@ Morgan的bit为1024
 
 # 默认位宽设置
 DEFAULT_BITS = {
+    'morgan_bits': 1024,
     'avalon_bits': 512,
     'molformer_bits': 768,
     'molt5_bits': 768,
@@ -43,15 +44,17 @@ DEFAULT_BITS = {
 INFERENCE_CONFIG = {
     'TASKS': ['SIF', 'SGF'],
     'EXECUTE': {
-        'SIF': {'model': 'lr', 'para': {'PRINTS': 'Avalon(512)_molFormer(768)', 'lr_max_iter': 120}},
-        'SGF': {'model': 'lr', 'para': {'PRINTS': 'Avalon(512)_MolT5(768)', 'lr_max_iter': 120}},
+        'SIF': {'model': 'lr', 'para': {'PRINTS': 'Morgan(1024)', 'lr_max_iter': 160}},
+        'SGF': {'model': 'lr', 'para': {'PRINTS': 'Morgan(1024)', 'lr_max_iter': 160}},
     }
 }
 
 
 def _select_bits_from_prints(print_name: str):
     """从 PRINTS 名称判断应启用哪些位（Avalon/molFormer/MolT5）。"""
-    flags = {'avalon_bits': 0, 'molformer_bits': 0, 'molt5_bits': 0}
+    flags = {'morgan_bits': 0, 'avalon_bits': 0, 'molformer_bits': 0, 'molt5_bits': 0}
+    if 'Morgan' in print_name:
+        flags['morgan_bits'] = DEFAULT_BITS['morgan_bits']
     if 'Avalon' in print_name:
         flags['avalon_bits'] = DEFAULT_BITS['avalon_bits']
     if re.search(r'molFormer', print_name, re.IGNORECASE):
