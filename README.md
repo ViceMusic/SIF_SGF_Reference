@@ -4,8 +4,11 @@
 
 - SIF使用LR模型，表征为Avalon+MolFormer
 - SGF使用LR模型，表征为Avalon+MolT5
+- 另外提供Baseline校验（LR模型，Morgan表征），会生成对应的文件夹
 
 （为了方便使用，我们提供了这种默认配置，如需调整请联系我们新增功能）
+
+- 为了确保数据隐私，我们仅上传了模型权重，测试数据仅包含五条经过修改的数据
 
 ## 〇 Python版本要求
 
@@ -114,6 +117,12 @@ csv文件中至少应包含一个名为SMILES的字段，该字段为SMILES格�
     ```./SGF_result/sgf_results.csv ```
     ```./SGF_result/sgf_results.html```
 
+- **Morgan-Baseline结果**: 
+
+    ```./SIF_result_baseline/sif_results.csv ```
+    ```./SIF_result_baseline/sif_results.html```
+    ```./SGF_result_baseline/sgf_results.csv ```
+    ```./SGF_result_baseline/sgf_results.html```
 
 ## ② 关于环境补充（为什么要使用原生的虚拟环境）：
 开发阶段使用的包管理工具为uv，但是涉及到以下两个问题
