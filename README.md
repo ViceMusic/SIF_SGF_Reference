@@ -1,31 +1,46 @@
 # Pipeline of inference
 
-该项目提供对于SMILES分子在SIF，SGF两种任务下的稳定性预测
+该项目提供对于SMILES分子在SIF，SGF两种任务下的稳定性预测，您可以通过调用start.py，传入您的目标数据集进行预测。预测将调用我们初步调参以后的模型，结果会输出到SIF_result和SIF_result文件夹下。
 
-- SIF使用LR模型，表征为Avalon+MolFormer
-- SGF使用LR模型，表征为Avalon+MolT5
-- 另外提供Baseline校验（LR模型，Morgan表征），会生成对应的文件夹
+除此之外，我们也提供了训练代码，您可以准备好测试集和训练集，通过调用train.py实现训练和验证。训练结果会以json格式出现在train_result文件夹下。
 
-（为了方便使用，我们提供了这种默认配置，如需调整请联系我们新增功能）
+如果您在运行中遇到任何问题，请通过如下方式直接将报错信息截图发送到邮箱**xarnudvilas@gmail.com**或添加微信**molai2024**, 也可在本仓库页面提交issue，我会在第一时间进行修复。
 
-- 为了确保数据隐私，我们仅上传了模型权重，测试数据仅包含五条经过修改的数据
 
-快速运行：
 
-1. 按照我们训练过的权重,选择模型和表征方式进行推理。
+## 快速运行：
+
+按照我们训练过的权重,选择模型和表征方式进行推理，可通过`start.py`执行。
 
 ```
-.\.venv\Scripts\python.exe start.py --input raw.csv --model lr --representation morgan
+.\.venv\Scripts\python.exe `start.py` --input `raw.csv` --model `lr` --representation `morgan`
 ```
 
-2. 若是根据您自己的数据进行训练，运行：
+若是根据您自己的数据进行训练，运行`train.py`：
 ```
-.\.venv\Scripts\python.exe train.py --train-csv your_train.csv --test-csv your_test.csv --model xgb --representation avalon+molt5 --rounds 5
+.\.venv\Scripts\python.exe `train.py` --train-csv `your_train.csv` --test-csv `your_test.csv` --model `xgb` --representation `avalon+molt5` --rounds `5`
 ```
 
-3. 数据要求在下方说明中，目前可供选择的模型包括lr，rf，xgb，可供选择的表征为
+支持持您选择的内容包括：
+    
+    目前可供选择的模型包括
 
-    avalon morgan molFormer molT5，avalon+molFormer，avalon+molT5
+    `lr`，`rf`，`xgb`，
+    
+    可供选择的表征为
+
+    `avalon` `morgan` `molFormer` `molT5`，`avalon+molFormer`，`avalon+molT5`
+
+    如需调整其他超参数，请前往`start.py`或`train.py`手动修改
+
+数据要求：
+
+对于直接预测的数据(调用`start`脚本)，需要您准备`csv`文件，其中必须包含唯一名为`SMILES`的字段
+
+对于您自己准备用来训练和验证的数据集，需要包含的字段为`SMILES`(分子)，`SIF`(0/1,在`SIF`下是否稳定)，`SGF`(0/1,在`SGF`下是否稳定)。
+
+
+
 
 ## 〇 Python版本要求
 
