@@ -10,6 +10,23 @@
 
 - 为了确保数据隐私，我们仅上传了模型权重，测试数据仅包含五条经过修改的数据
 
+快速运行：
+
+1. 按照我们训练过的权重,选择模型和表征方式进行推理。
+
+```
+.\.venv\Scripts\python.exe start.py --input raw.csv --model lr --representation morgan
+```
+
+2. 若是根据您自己的数据进行训练，运行：
+```
+.\.venv\Scripts\python.exe train.py --train-csv your_train.csv --test-csv your_test.csv --model xgb --representation avalon+molt5 --rounds 5
+```
+
+3. 数据要求在下方说明中，目前可供选择的模型包括lr，rf，xgb，可供选择的表征为
+
+    avalon morgan molFormer molT5，avalon+molFormer，avalon+molT5
+
 ## 〇 Python版本要求
 
 前提： 确保工作环境装了 Python 3.11。
@@ -23,7 +40,7 @@ python --version
 3.11.*
 ```
 
-另外请自备包含字段为**SMILES**的csv文件
+另外请自备包含字段名称为**SMILES**的csv文件
 
 ## ① 使用方法
 
@@ -123,6 +140,30 @@ csv文件中至少应包含一个名为SMILES的字段，该字段为SMILES格�
     ```./SIF_result_baseline/sif_results.html```
     ```./SGF_result_baseline/sgf_results.csv ```
     ```./SGF_result_baseline/sgf_results.html```
+
+### 7. 关于模型训练
+
+当您需要根据自己的数据进行训练的时候，需要您自行划分阈值，并且提前将其映射为0/1标签（不稳定/稳定）
+
+使用方法为：
+
+```
+# 案例1：
+.\.venv\Scripts\python.exe train.py --train-csv sample_train.csv --test-csv sample_test.csv --model lr --representation morgan --rounds 3
+
+# 案例2：
+.\.venv\Scripts\python.exe train.py --train-csv your_train.csv --test-csv your_test.csv --model xgb --representation avalon+molt5 --rounds 5
+
+```
+其中，关于您关于数据的要求为csv格式，并且需要包含以下内容
+
+    必须有 SMILES
+    必须有 SIF
+    必须有 SGF
+    SIF 和 SGF 必须是 0/1
+
+此外，如果您希望对单分子进行过滤，需要您在csv中添加字段is_monomer == True，并且将脚本参数按照filter_monomer_only=True 进行设置
+
 
 ## ② 关于环境补充（为什么要使用原生的虚拟环境）：
 开发阶段使用的包管理工具为uv，但是涉及到以下两个问题

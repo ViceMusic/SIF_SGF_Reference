@@ -23,6 +23,7 @@ feature_extraction.log
 # Claude Code local configuration
 .claude/
 CLAUDE.md
+agent.md
 
 # Generated outputs (optional - uncomment if you don't want to commit outputs)
 # outputs/
