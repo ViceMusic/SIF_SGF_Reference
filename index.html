@@ -1,0 +1,2777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    />
+
+    <title>Peptide Stability in SIF & SGF</title>
+
+    <style>
+        :root {
+            --green-950: #052e16;
+            --green-900: #14532d;
+            --green-800: #166534;
+            --green-700: #15803d;
+            --green-600: #16a34a;
+            --green-500: #22c55e;
+            --green-100: #dcfce7;
+            --green-50: #f0fdf4;
+
+            --yellow-500: #eab308;
+            --yellow-400: #facc15;
+            --yellow-300: #fde047;
+
+            --red-700: #b91c1c;
+            --red-100: #fee2e2;
+            --red-50: #fef2f2;
+
+            --blue-700: #1d4ed8;
+            --blue-50: #eff6ff;
+
+            --gray-950: #0f172a;
+            --gray-900: #111827;
+            --gray-800: #1f2937;
+            --gray-700: #374151;
+            --gray-600: #4b5563;
+            --gray-500: #64748b;
+            --gray-300: #cbd5e1;
+            --gray-200: #e2e8f0;
+            --gray-100: #f1f5f9;
+            --gray-50: #f8fafc;
+
+            --white: #ffffff;
+
+            --shadow:
+                0 16px 45px rgba(15, 23, 42, 0.08);
+
+            --shadow-small:
+                0 8px 24px rgba(15, 23, 42, 0.06);
+
+            --radius-large: 22px;
+            --radius-medium: 14px;
+            --radius-small: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(
+                    circle at top right,
+                    rgba(34, 197, 94, 0.08),
+                    transparent 30rem
+                ),
+                var(--gray-50);
+
+            color: var(--gray-800);
+
+            font-family:
+                Inter,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+
+            line-height: 1.65;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button,
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        a {
+            color: var(--green-700);
+        }
+
+        .site-header {
+            position: relative;
+            overflow: hidden;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--green-950) 0%,
+                    var(--green-800) 48%,
+                    var(--green-600) 100%
+                );
+
+            color: var(--white);
+        }
+
+        .site-header::before {
+            content: "";
+            position: absolute;
+
+            width: 380px;
+            height: 380px;
+
+            top: -220px;
+            right: -90px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(250, 204, 21, 0.13);
+        }
+
+        .site-header::after {
+            content: "";
+            position: absolute;
+
+            width: 280px;
+            height: 280px;
+
+            left: -150px;
+            bottom: -210px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(255, 255, 255, 0.08);
+        }
+
+        .header-inner {
+            position: relative;
+            z-index: 1;
+
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto;
+
+            padding: 46px 0 40px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .header-copy {
+            max-width: 760px;
+        }
+
+        .header-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            margin-bottom: 14px;
+            padding: 6px 12px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.23);
+
+            border-radius: 999px;
+
+            background:
+                rgba(255, 255, 255, 0.09);
+
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .header-label-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: var(--yellow-400);
+
+            box-shadow:
+                0 0 0 5px rgba(250, 204, 21, 0.17);
+        }
+
+        .site-title {
+            margin: 0;
+
+            font-size:
+                clamp(32px, 5vw, 54px);
+
+            line-height: 1.08;
+            letter-spacing: -0.035em;
+        }
+
+        .site-subtitle {
+            max-width: 720px;
+
+            margin: 16px 0 0;
+
+            color:
+                rgba(255, 255, 255, 0.83);
+
+            font-size:
+                clamp(15px, 2vw, 18px);
+        }
+
+        .header-actions {
+            flex-shrink: 0;
+
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+
+        .download-button {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 9px;
+
+            min-width: 190px;
+
+            padding: 14px 21px;
+
+            border-radius: 12px;
+
+            background: var(--yellow-400);
+            color: var(--gray-950);
+
+            text-decoration: none;
+            font-weight: 800;
+
+            box-shadow:
+                0 12px 28px rgba(250, 204, 21, 0.2);
+
+            transition:
+                transform 0.16s ease,
+                background-color 0.16s ease,
+                box-shadow 0.16s ease;
+        }
+
+        .download-button:hover {
+            transform: translateY(-2px);
+
+            background: var(--yellow-300);
+
+            box-shadow:
+                0 16px 34px rgba(250, 204, 21, 0.3);
+        }
+
+        .download-note {
+            color:
+                rgba(255, 255, 255, 0.68);
+
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .navigation {
+            position: sticky;
+            z-index: 20;
+            top: 0;
+
+            background:
+                rgba(255, 255, 255, 0.95);
+
+            border-bottom:
+                1px solid var(--gray-200);
+
+            backdrop-filter: blur(14px);
+        }
+
+        .navigation-inner {
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto;
+
+            display: grid;
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+        }
+
+        .nav-button {
+            position: relative;
+
+            padding: 18px 14px;
+
+            border: 0;
+
+            background: transparent;
+            color: var(--gray-600);
+
+            cursor: pointer;
+
+            font-weight: 750;
+
+            transition:
+                color 0.16s ease,
+                background-color 0.16s ease;
+        }
+
+        .nav-button:hover {
+            color: var(--green-700);
+            background: var(--green-50);
+        }
+
+        .nav-button.active {
+            color: var(--green-800);
+        }
+
+        .nav-button.active::after {
+            content: "";
+
+            position: absolute;
+            left: 18%;
+            right: 18%;
+            bottom: 0;
+
+            height: 4px;
+
+            border-radius: 999px 999px 0 0;
+
+            background: var(--green-600);
+        }
+
+        .page-container {
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto;
+
+            padding: 42px 0 70px;
+        }
+
+        .page-panel.hidden {
+            display: none;
+        }
+
+        .page-heading {
+            margin-bottom: 24px;
+        }
+
+        .page-heading h2 {
+            margin: 0;
+
+            color: var(--green-900);
+
+            font-size:
+                clamp(26px, 4vw, 38px);
+
+            line-height: 1.2;
+            letter-spacing: -0.025em;
+        }
+
+        .page-heading p {
+            max-width: 820px;
+
+            margin: 10px 0 0;
+
+            color: var(--gray-500);
+        }
+
+        .card {
+            margin-bottom: 24px;
+            padding: 30px;
+
+            border:
+                1px solid rgba(203, 213, 225, 0.82);
+
+            border-radius: var(--radius-large);
+
+            background:
+                rgba(255, 255, 255, 0.96);
+
+            box-shadow: var(--shadow-small);
+        }
+
+        .card:last-child {
+            margin-bottom: 0;
+        }
+
+        .card h3 {
+            margin:
+                0 0 12px;
+
+            color: var(--green-900);
+
+            font-size: 23px;
+            line-height: 1.25;
+        }
+
+        .card h4 {
+            margin:
+                24px 0 10px;
+
+            color: var(--gray-800);
+
+            font-size: 17px;
+        }
+
+        .card p {
+            margin:
+                0 0 13px;
+        }
+
+        .card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .prediction-layout {
+            display: grid;
+            grid-template-columns:
+                minmax(0, 1.48fr)
+                minmax(290px, 0.72fr);
+
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        .prediction-card {
+            min-height: 100%;
+        }
+
+        .model-pipeline {
+            margin: 24px 0;
+
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pipeline-item {
+            padding: 9px 13px;
+
+            border:
+                1px solid var(--green-100);
+
+            border-radius: 999px;
+
+            background: var(--green-50);
+            color: var(--green-900);
+
+            font-size: 14px;
+            font-weight: 750;
+        }
+
+        .pipeline-arrow {
+            color: var(--green-600);
+            font-weight: 900;
+        }
+
+        .form-label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: var(--gray-700);
+
+            font-weight: 750;
+        }
+
+        .smiles-input {
+            width: 100%;
+
+            padding: 17px 18px;
+
+            border:
+                1px solid var(--gray-300);
+
+            border-radius: 13px;
+
+            background: var(--white);
+            color: var(--gray-900);
+
+            outline: none;
+
+            font-family:
+                "SFMono-Regular",
+                Consolas,
+                "Liberation Mono",
+                monospace;
+
+            font-size: 16px;
+
+            transition:
+                border-color 0.16s ease,
+                box-shadow 0.16s ease;
+        }
+
+        .smiles-input:focus {
+            border-color: var(--green-500);
+
+            box-shadow:
+                0 0 0 4px rgba(34, 197, 94, 0.13);
+        }
+
+        .task-row {
+            margin-top: 20px;
+
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-label {
+            color: var(--gray-600);
+            font-weight: 750;
+        }
+
+        .task-switch {
+            display: inline-flex;
+            gap: 6px;
+
+            padding: 5px;
+
+            border:
+                1px solid var(--gray-200);
+
+            border-radius: 12px;
+
+            background: var(--gray-100);
+        }
+
+        .task-option {
+            min-width: 74px;
+
+            padding: 9px 14px;
+
+            border: 0;
+            border-radius: 9px;
+
+            background: transparent;
+            color: var(--gray-600);
+
+            cursor: pointer;
+
+            font-weight: 800;
+        }
+
+        .task-option.active {
+            background: var(--white);
+            color: var(--green-800);
+
+            box-shadow:
+                0 3px 10px rgba(15, 23, 42, 0.09);
+        }
+
+        .threshold-badge {
+            padding: 8px 12px;
+
+            border-radius: 999px;
+
+            background: var(--blue-50);
+            color: var(--blue-700);
+
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        .predict-button {
+            width: 100%;
+
+            margin-top: 23px;
+            padding: 15px 20px;
+
+            border: 0;
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--yellow-400),
+                    var(--yellow-500)
+                );
+
+            color: var(--gray-950);
+
+            cursor: pointer;
+
+            font-weight: 850;
+
+            box-shadow:
+                0 10px 24px rgba(234, 179, 8, 0.18);
+
+            transition:
+                transform 0.16s ease,
+                filter 0.16s ease,
+                opacity 0.16s ease;
+        }
+
+        .predict-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            filter: brightness(1.03);
+        }
+
+        .predict-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.63;
+        }
+
+        .result-box {
+            display: none;
+
+            margin-top: 20px;
+            padding: 20px;
+
+            border-radius: 14px;
+        }
+
+        .result-box.visible {
+            display: block;
+        }
+
+        .result-box.loading {
+            border:
+                1px solid var(--gray-200);
+
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .result-box.success {
+            border:
+                1px solid #bbf7d0;
+
+            background: var(--green-50);
+        }
+
+        .result-box.unstable {
+            border:
+                1px solid #fecaca;
+
+            background: var(--red-50);
+        }
+
+        .result-box.error {
+            border:
+                1px solid #fecaca;
+
+            background: var(--red-50);
+            color: var(--red-700);
+        }
+
+        .result-status {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .result-title {
+            margin-top: 4px;
+
+            font-size: 30px;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+        }
+
+        .result-details {
+            margin-top: 8px;
+
+            color: var(--gray-600);
+        }
+
+        .spinner-row {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .spinner {
+            width: 19px;
+            height: 19px;
+
+            border:
+                3px solid rgba(22, 101, 52, 0.18);
+
+            border-top-color: var(--green-700);
+            border-radius: 50%;
+
+            animation:
+                spin 0.75s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .baseline-card {
+            background:
+                linear-gradient(
+                    160deg,
+                    var(--green-950),
+                    var(--green-800)
+                );
+
+            color: rgba(255, 255, 255, 0.86);
+
+            border: 0;
+        }
+
+        .baseline-card h3 {
+            color: var(--white);
+        }
+
+        .baseline-warning {
+            margin-top: 20px;
+            padding: 15px;
+
+            border:
+                1px solid rgba(250, 204, 21, 0.28);
+
+            border-radius: 12px;
+
+            background:
+                rgba(250, 204, 21, 0.1);
+
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .baseline-warning strong {
+            color: var(--yellow-300);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+
+            gap: 15px;
+
+            margin-top: 24px;
+        }
+
+        .stat-card {
+            padding: 20px;
+
+            border:
+                1px solid var(--gray-200);
+
+            border-radius: var(--radius-medium);
+
+            background: var(--gray-50);
+        }
+
+        .stat-value {
+            color: var(--green-800);
+
+            font-size: 29px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+        }
+
+        .stat-label {
+            margin-top: 4px;
+
+            color: var(--gray-500);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+
+            border:
+                1px solid var(--gray-200);
+
+            border-radius: 14px;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+
+            background: var(--white);
+        }
+
+        th,
+        td {
+            padding: 13px 15px;
+
+            border-bottom:
+                1px solid var(--gray-200);
+
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: var(--green-50);
+            color: var(--green-900);
+
+            font-size: 13px;
+            font-weight: 850;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        code {
+            padding: 2px 6px;
+
+            border-radius: 6px;
+
+            background: var(--gray-100);
+            color: var(--green-800);
+
+            font-family:
+                "SFMono-Regular",
+                Consolas,
+                "Liberation Mono",
+                monospace;
+
+            font-size: 0.92em;
+        }
+
+        pre {
+            margin: 14px 0 0;
+            padding: 20px;
+
+            overflow: auto;
+
+            border-radius: 14px;
+
+            background: var(--gray-950);
+            color: #dbeafe;
+
+            font-family:
+                "SFMono-Regular",
+                Consolas,
+                "Liberation Mono",
+                monospace;
+
+            font-size: 13px;
+            line-height: 1.65;
+
+            white-space: pre;
+        }
+
+        pre code {
+            padding: 0;
+
+            background: transparent;
+            color: inherit;
+        }
+
+        .download-grid,
+        .feature-grid,
+        .author-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 16px;
+
+            margin-top: 20px;
+        }
+
+        .download-card,
+        .feature-card,
+        .author-card {
+            padding: 20px;
+
+            border:
+                1px solid var(--gray-200);
+
+            border-radius: var(--radius-medium);
+
+            background: var(--gray-50);
+        }
+
+        .download-card h4,
+        .feature-card h4,
+        .author-card h4 {
+            margin:
+                0 0 8px;
+        }
+
+        .file-button,
+        .resource-button {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+
+            margin-top: 12px;
+            padding: 10px 15px;
+
+            border-radius: 10px;
+
+            background: var(--yellow-400);
+            color: var(--gray-950);
+
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        .secondary-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+
+            margin-top: 12px;
+
+            color: var(--green-700);
+
+            font-weight: 750;
+            text-decoration: none;
+        }
+
+        .secondary-link:hover {
+            text-decoration: underline;
+        }
+
+        .notice {
+            margin-top: 20px;
+            padding: 17px 19px;
+
+            border-left:
+                5px solid var(--yellow-500);
+
+            border-radius:
+                0 12px 12px 0;
+
+            background: #fefce8;
+            color: #713f12;
+        }
+
+        .about-highlight {
+            padding: 30px;
+
+            border-radius: var(--radius-large);
+
+            background:
+                linear-gradient(
+                    140deg,
+                    var(--green-950),
+                    var(--green-700)
+                );
+
+            color: rgba(255, 255, 255, 0.88);
+
+            box-shadow: var(--shadow);
+        }
+
+        .about-highlight h3 {
+            margin:
+                0 0 14px;
+
+            color: var(--white);
+
+            font-size: 28px;
+        }
+
+        .about-highlight p {
+            max-width: 900px;
+        }
+
+        .resource-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+
+            margin-top: 20px;
+        }
+
+        .resource-button {
+            margin-top: 0;
+        }
+
+        .resource-button.secondary {
+            border:
+                1px solid var(--green-200, #bbf7d0);
+
+            background: var(--green-50);
+            color: var(--green-800);
+        }
+
+        .author-name {
+            color: var(--green-900);
+
+            font-size: 19px;
+            font-weight: 850;
+        }
+
+        .author-affiliation {
+            margin-top: 4px;
+
+            color: var(--gray-500);
+        }
+
+        .author-email {
+            display: inline-block;
+
+            margin-top: 10px;
+
+            overflow-wrap: anywhere;
+
+            color: var(--green-700);
+
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .site-footer {
+            padding: 27px 20px;
+
+            border-top:
+                1px solid var(--gray-200);
+
+            background: var(--white);
+            color: var(--gray-500);
+
+            text-align: center;
+            font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+            .header-inner {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .header-actions {
+                width: 100%;
+                align-items: flex-start;
+            }
+
+            .download-button {
+                width: 100%;
+            }
+
+            .prediction-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-grid {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-inner,
+            .navigation-inner,
+            .page-container {
+                width:
+                    min(100% - 24px, 1180px);
+            }
+
+            .header-inner {
+                padding:
+                    34px 0 31px;
+            }
+
+            .navigation-inner {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-button {
+                padding: 13px;
+            }
+
+            .nav-button.active::after {
+                left: 29%;
+                right: 29%;
+            }
+
+            .page-container {
+                padding:
+                    28px 0 50px;
+            }
+
+            .card,
+            .about-highlight {
+                padding: 22px;
+                border-radius: 17px;
+            }
+
+            .stat-grid,
+            .download-grid,
+            .feature-grid,
+            .author-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .task-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .task-switch {
+                width: 100%;
+            }
+
+            .task-option {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="header-copy">
+                <div class="header-label">
+                    <span class="header-label-dot"></span>
+                    Peptide stability benchmark
+                </div>
+
+                <h1 class="site-title">
+                    Peptide Stability in SIF &amp; SGF
+                </h1>
+
+                <p class="site-subtitle">
+                    Curated peptide half-life data for stability analysis,
+                    classification, regression, and source-generalization
+                    research in simulated intestinal and gastric fluids.
+                </p>
+            </div>
+
+            <div class="header-actions">
+                <a
+                    class="download-button"
+                    href="https://huggingface.co/datasets/Vicemusic5/KAUST-SMILES-SIFSGF"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Download Dataset
+                </a>
+
+                <div class="download-note">
+                    Hosted on Hugging Face Dataset Hub
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="navigation">
+        <div class="navigation-inner">
+            <button
+                class="nav-button active"
+                type="button"
+                data-page="prediction"
+            >
+                Prediction Demo
+            </button>
+
+            <button
+                class="nav-button"
+                type="button"
+                data-page="dataset"
+            >
+                Dataset &amp; API
+            </button>
+
+            <button
+                class="nav-button"
+                type="button"
+                data-page="about"
+            >
+                Benchmark &amp; Authors
+            </button>
+        </div>
+    </nav>
+
+    <main class="page-container">
+        <!-- Prediction page -->
+        <section
+            id="page-prediction"
+            class="page-panel"
+        >
+            <div class="page-heading">
+                <h2>Online stability prediction</h2>
+
+                <p>
+                    Submit one SMILES string and obtain a lightweight
+                    baseline prediction for either the SIF or SGF task.
+                </p>
+            </div>
+
+            <div class="prediction-layout">
+                <article class="card prediction-card">
+                    <h3>Predict peptide stability</h3>
+
+                    <p>
+                        The online demo applies the following fixed
+                        baseline pipeline:
+                    </p>
+
+                    <div class="model-pipeline">
+                        <span class="pipeline-item">
+                            SMILES
+                        </span>
+
+                        <span class="pipeline-arrow">→</span>
+
+                        <span class="pipeline-item">
+                            Morgan fingerprint
+                        </span>
+
+                        <span class="pipeline-arrow">→</span>
+
+                        <span class="pipeline-item">
+                            Logistic regression
+                        </span>
+
+                        <span class="pipeline-arrow">→</span>
+
+                        <span class="pipeline-item">
+                            Stable / unstable
+                        </span>
+                    </div>
+
+                    <label
+                        class="form-label"
+                        for="smiles-input"
+                    >
+                        SMILES
+                    </label>
+
+                    <input
+                        id="smiles-input"
+                        class="smiles-input"
+                        type="text"
+                        autocomplete="off"
+                        spellcheck="false"
+                        placeholder="Example: CCO"
+                        value="CCO"
+                    />
+
+                    <div class="task-row">
+                        <span class="task-label">
+                            Prediction task
+                        </span>
+
+                        <div
+                            class="task-switch"
+                            role="group"
+                            aria-label="Prediction task"
+                        >
+                            <button
+                                class="task-option active"
+                                type="button"
+                                data-task="SIF"
+                            >
+                                SIF
+                            </button>
+
+                            <button
+                                class="task-option"
+                                type="button"
+                                data-task="SGF"
+                            >
+                                SGF
+                            </button>
+                        </div>
+
+                        <span
+                            id="threshold-badge"
+                            class="threshold-badge"
+                        >
+                            Stable threshold: 270 min
+                        </span>
+                    </div>
+
+                    <button
+                        id="predict-button"
+                        class="predict-button"
+                        type="button"
+                    >
+                        Predict Stability
+                    </button>
+
+                    <div
+                        id="prediction-result"
+                        class="result-box"
+                        aria-live="polite"
+                    ></div>
+                </article>
+
+                <aside class="card baseline-card">
+                    <h3>Baseline scope</h3>
+
+                    <p>
+                        This predictor is intended as a transparent,
+                        reproducible reference model rather than a final
+                        clinical or experimental decision system.
+                    </p>
+
+                    <div class="baseline-warning">
+                        <strong>Cross-domain limitation:</strong>
+
+                        experiments revealed substantial distribution shift
+                        between different data sources. Predictions for
+                        molecules from unseen patent or experimental domains
+                        may therefore be unreliable.
+                    </div>
+
+                    <div class="baseline-warning">
+                        <strong>Classification convention:</strong>
+
+                        SIF samples with a mapped half-life of at least
+                        270 minutes and SGF samples with a mapped half-life
+                        of at least 250 minutes are treated as relatively
+                        stable.
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- Dataset page -->
+        <section
+            id="page-dataset"
+            class="page-panel hidden"
+        >
+            <div class="page-heading">
+                <h2>Dataset construction and access</h2>
+
+                <p>
+                    Two task-specific files are produced from heterogeneous
+                    patent-derived stability records using explicit mapping,
+                    filtering, and provenance-preservation rules.
+                </p>
+            </div>
+
+            <article class="card">
+                <h3>Dataset overview</h3>
+
+                <p>
+                    The dataset contains monomeric peptides collected from
+                    multiple original CSV sources. Patent or source identifiers
+                    are preserved in the <code>source_name</code> field so that
+                    users can inspect provenance and construct source-aware
+                    evaluation protocols.
+                </p>
+
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">515</div>
+                        <div class="stat-label">
+                            SIF samples
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-value">402</div>
+                        <div class="stat-label">
+                            SGF samples
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-value">2</div>
+                        <div class="stat-label">
+                            Independent tasks
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-value">700</div>
+                        <div class="stat-label">
+                            Recommended maximum minutes
+                        </div>
+                    </div>
+                </div>
+
+                <div class="download-grid">
+                    <div class="download-card">
+                        <h4>sif.csv</h4>
+
+                        <p>
+                            Peptide half-life records in Simulated
+                            Intestinal Fluid.
+                        </p>
+
+                        <a
+                            class="file-button"
+                            href="https://huggingface.co/datasets/Vicemusic5/KAUST-SMILES-SIFSGF/resolve/main/sif.csv?download=true"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Download SIF CSV
+                        </a>
+                    </div>
+
+                    <div class="download-card">
+                        <h4>sgf.csv</h4>
+
+                        <p>
+                            Peptide half-life records in Simulated
+                            Gastric Fluid.
+                        </p>
+
+                        <a
+                            class="file-button"
+                            href="https://huggingface.co/datasets/Vicemusic5/KAUST-SMILES-SIFSGF/resolve/main/sgf.csv?download=true"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Download SGF CSV
+                        </a>
+                    </div>
+                </div>
+
+                <a
+                    class="secondary-link"
+                    href="https://huggingface.co/datasets/Vicemusic5/KAUST-SMILES-SIFSGF"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open the complete dataset repository
+                </a>
+            </article>
+
+            <article class="card">
+                <h3>From raw records to trainable data</h3>
+
+                <p>
+                    The original records use heterogeneous stability
+                    representations. The processing pipeline converts them
+                    into task-specific, minute-based datasets suitable for
+                    machine-learning experiments.
+                </p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>1. Task-specific fields</h4>
+
+                        <p>
+                            SIF uses <code>SIF_minutes</code>, while SGF uses
+                            <code>SGF_minutes</code>. The two tasks are filtered
+                            independently.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>2. Valid half-life values</h4>
+
+                        <p>
+                            Samples with missing or invalid values for the
+                            selected task are removed.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>3. Monomer filtering</h4>
+
+                        <p>
+                            Only records satisfying
+                            <code>is_monomer = True</code> are retained.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>4. Range filtering</h4>
+
+                        <p>
+                            The recommended construction protocol retains
+                            samples with task half-life values no greater than
+                            700 minutes.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>5. Provenance preservation</h4>
+
+                        <p>
+                            <code>source_name</code> records the original raw
+                            file or patent source for leakage checks and
+                            source-aware splitting.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>6. Task-ready fields</h4>
+
+                        <p>
+                            The final files retain SMILES, the existing class
+                            label, the minute-based half-life, and source
+                            information.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="notice">
+                    SIF and SGF are independent tasks. A sample that lacks a
+                    valid half-life value for one task may still be retained
+                    for the other task.
+                </div>
+            </article>
+
+            <article class="card">
+                <h3>Label mapping rules</h3>
+
+                <p>
+                    The mapping below converts heterogeneous labels from the
+                    original collected records into a common minute-based
+                    scale. This enables comparison across sources but
+                    introduces discretization effects, so small performance
+                    differences should be interpreted cautiously.
+                </p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Input type</th>
+                                <th>Input form</th>
+                                <th>Output</th>
+                                <th>Interpretation</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>Five-level label</td>
+                                <td>*****</td>
+                                <td>30 minutes</td>
+                                <td>Very unstable</td>
+                            </tr>
+
+                            <tr>
+                                <td>Five-level label</td>
+                                <td>****</td>
+                                <td>90 minutes</td>
+                                <td>Relatively unstable</td>
+                            </tr>
+
+                            <tr>
+                                <td>Five-level label</td>
+                                <td>***</td>
+                                <td>150 minutes</td>
+                                <td>Intermediate</td>
+                            </tr>
+
+                            <tr>
+                                <td>Five-level label</td>
+                                <td>**</td>
+                                <td>270 minutes</td>
+                                <td>Relatively stable</td>
+                            </tr>
+
+                            <tr>
+                                <td>Five-level label</td>
+                                <td>*</td>
+                                <td>420 minutes</td>
+                                <td>Very stable</td>
+                            </tr>
+
+                            <tr>
+                                <td>Four-level label</td>
+                                <td>1</td>
+                                <td>30 minutes</td>
+                                <td>Very unstable</td>
+                            </tr>
+
+                            <tr>
+                                <td>Four-level label</td>
+                                <td>2</td>
+                                <td>75 minutes</td>
+                                <td>Relatively unstable</td>
+                            </tr>
+
+                            <tr>
+                                <td>Four-level label</td>
+                                <td>3</td>
+                                <td>105 minutes</td>
+                                <td>Intermediate</td>
+                            </tr>
+
+                            <tr>
+                                <td>Four-level label</td>
+                                <td>4</td>
+                                <td>150 minutes</td>
+                                <td>Stable</td>
+                            </tr>
+
+                            <tr>
+                                <td>Numeric input</td>
+                                <td>Any numeric value</td>
+                                <td>Original value</td>
+                                <td>Used directly</td>
+                            </tr>
+
+                            <tr>
+                                <td>Missing or invalid</td>
+                                <td>NaN / empty / —</td>
+                                <td>-1</td>
+                                <td>Missing-value indicator</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article class="card">
+                <h3>Fields and recommended thresholds</h3>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Main fields</th>
+                                <th>Stable threshold</th>
+                                <th>Current distribution</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>SIF</td>
+                                <td>
+                                    SMILES, SIF_class, SIF_minutes,
+                                    source_name
+                                </td>
+                                <td>≥ 270 minutes</td>
+                                <td>336 short / 179 long</td>
+                            </tr>
+
+                            <tr>
+                                <td>SGF</td>
+                                <td>
+                                    SMILES, SGF_class, SGF_minutes,
+                                    source_name
+                                </td>
+                                <td>≥ 250 minutes</td>
+                                <td>281 short / 121 long</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="notice">
+                    Existing <code>SIF_class</code> and
+                    <code>SGF_class</code> values may originate from different
+                    labeling systems. For unified binary classification,
+                    regenerate labels from the minute fields and use one
+                    consistent threshold rule throughout training, validation,
+                    and testing.
+                </div>
+            </article>
+
+            <article class="card">
+                <h3>Molecular representations</h3>
+
+                <p>
+                    The benchmark includes 24 basic physicochemical
+                    descriptors. Approximately 220 extended RDKit descriptors
+                    are additionally available as the MolDescriptor
+                    representation.
+                </p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>Charge statistics</h4>
+
+                        <p>
+                            Mean, maximum, minimum, standard deviation, and
+                            sum of molecular Gasteiger atomic charges.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>QED-related properties</h4>
+
+                        <p>
+                            Molecular weight, lipophilicity, hydrogen-bond
+                            counts, polar surface area, rotatable bonds,
+                            aromatic rings, and structural alerts.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>Basic physicochemical descriptors</h4>
+
+                        <p>
+                            MolWt, LogP, HBA, HBD, TPSA, ring count, Fsp3,
+                            heavy-atom count, and total atom count.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>Rigidity indicator</h4>
+
+                        <p>
+                            A coarse rigidity index combines ring and aromatic
+                            counts relative to the number of rotatable bonds.
+                        </p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card">
+                <h3>Data-quality note</h3>
+
+                <p>
+                    In the currently merged historical files, two SIF records
+                    contain half-life values above 700 minutes: 816 and
+                    2100 minutes. Both originate from
+                    <code>US9809623B2.csv</code>. No corresponding SGF
+                    records above 700 minutes were identified.
+                </p>
+
+                <p>
+                    Strict reproduction of the stated filtering protocol
+                    should exclude these two SIF records or regenerate the
+                    task files from the raw-data cleaning pipeline.
+                </p>
+            </article>
+
+            <article class="card">
+                <h3>API access</h3>
+
+                <p>
+                    The public prediction endpoint accepts an array of SMILES
+                    strings. The website submits exactly one SMILES string as
+                    a one-element array.
+                </p>
+
+                <h4>Submit endpoint</h4>
+
+                <pre><code>POST https://vicemusic5-kaust-smile-predict.hf.space/gradio_api/call/predict
+
+Content-Type: application/json
+
+{
+  "data": [
+    ["CCO"],
+    "SIF",
+    "Morgan",
+    "lr"
+  ]
+}</code></pre>
+
+                <h4>Read the asynchronous result</h4>
+
+                <pre><code>GET https://vicemusic5-kaust-smile-predict.hf.space/gradio_api/call/predict/{event_id}</code></pre>
+
+                <p>
+                    The second endpoint returns a Server-Sent Events stream.
+                    The final payload is the event whose
+                    <code>msg</code> field equals
+                    <code>process_completed</code>.
+                </p>
+
+                <a
+                    class="secondary-link"
+                    href="https://github.com/ViceMusic/SIF_SGF_Reference"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    View the complete source code and examples
+                </a>
+            </article>
+        </section>
+
+        <!-- About page -->
+        <section
+            id="page-about"
+            class="page-panel hidden"
+        >
+            <div class="page-heading">
+                <h2>Benchmark motivation</h2>
+
+                <p>
+                    A unified resource for peptide-stability modeling,
+                    source-aware evaluation, and limited target-domain
+                    supervision.
+                </p>
+            </div>
+
+            <article class="about-highlight">
+                <h3>Why this benchmark matters</h3>
+
+                <p>
+                    The main contribution of this work is not a new predictive
+                    architecture, but the formulation of SIF/SGF stability
+                    prediction as a benchmark with explicit data boundaries,
+                    task definitions, and source-generalization protocols.
+                </p>
+
+                <p>
+                    The resulting resource provides a unified foundation for
+                    model comparison, cross-source robustness research, and
+                    learning under limited target-domain supervision.
+                </p>
+            </article>
+
+            <article class="card">
+                <h3>Research focus</h3>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>Unified task definitions</h4>
+
+                        <p>
+                            Explicit SIF and SGF task boundaries reduce
+                            ambiguity when comparing models across studies.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>Source-aware evaluation</h4>
+
+                        <p>
+                            Preserved provenance supports evaluation under
+                            realistic cross-source distribution shifts.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>Reproducible baselines</h4>
+
+                        <p>
+                            Fixed representations, splits, thresholds, and
+                            metrics provide a transparent reference point.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>Limited target supervision</h4>
+
+                        <p>
+                            The benchmark supports studying adaptation when
+                            only a small amount of target-domain data is
+                            available.
+                        </p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card">
+                <h3>Resources</h3>
+
+                <p>
+                    The dataset, implementation, and interactive prediction
+                    service are provided as separate but connected resources.
+                </p>
+
+                <div class="resource-row">
+                    <a
+                        class="resource-button"
+                        href="https://huggingface.co/datasets/Vicemusic5/KAUST-SMILES-SIFSGF"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Dataset
+                    </a>
+
+                    <a
+                        class="resource-button secondary"
+                        href="https://github.com/ViceMusic/SIF_SGF_Reference"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Source Code
+                    </a>
+
+                    <a
+                        id="paper-link"
+                        class="resource-button secondary"
+                        href="#"
+                    >
+                        Paper
+                    </a>
+                </div>
+            </article>
+
+            <article class="card">
+                <h3>Authors</h3>
+
+                <div class="author-grid">
+                    <div class="author-card">
+                        <div class="author-name">
+                            Tiange
+                        </div>
+
+                        <div class="author-affiliation">
+                            Hokkaido University
+                        </div>
+
+                        <a
+                            class="author-email"
+                            href="mailto:tian@lmd.ist.hokudai.ac.jp"
+                        >
+                            tian@lmd.ist.hokudai.ac.jp
+                        </a>
+                    </div>
+
+                    <div class="author-card">
+                        <div class="author-name">
+                            Wenjia He
+                        </div>
+
+                        <div class="author-affiliation">
+                            King Abdullah University of Science and
+                            Technology
+                        </div>
+
+                        <a
+                            class="author-email"
+                            href="mailto:wenjia.he@kaust.edu.sa"
+                        >
+                            wenjia.he@kaust.edu.sa
+                        </a>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        Peptide Stability in SIF &amp; SGF ·
+        Dataset, benchmark, and lightweight prediction demo
+    </footer>
+
+    <script>
+        "use strict";
+
+        const SPACE_URL =
+            "https://vicemusic5-kaust-smile-predict.hf.space";
+
+        const GRADIO_SUBMIT_URL =
+            `${SPACE_URL}/gradio_api/call/predict`;
+
+        const MODEL_REPRESENTATION =
+            "Morgan";
+
+        const MODEL_NAME =
+            "lr";
+
+        let selectedTask =
+            "SIF";
+
+        const taskThresholds = {
+            SIF: 270,
+            SGF: 250
+        };
+
+        const navigationButtons =
+            document.querySelectorAll(".nav-button");
+
+        const pagePanels =
+            document.querySelectorAll(".page-panel");
+
+        const taskButtons =
+            document.querySelectorAll(".task-option");
+
+        const thresholdBadge =
+            document.getElementById("threshold-badge");
+
+        const smilesInput =
+            document.getElementById("smiles-input");
+
+        const predictButton =
+            document.getElementById("predict-button");
+
+        const predictionResult =
+            document.getElementById("prediction-result");
+
+        const paperLink =
+            document.getElementById("paper-link");
+
+        navigationButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                const pageName =
+                    button.dataset.page;
+
+                navigationButtons.forEach((item) => {
+                    item.classList.remove("active");
+                });
+
+                button.classList.add("active");
+
+                pagePanels.forEach((panel) => {
+                    panel.classList.add("hidden");
+                });
+
+                const activePage =
+                    document.getElementById(
+                        `page-${pageName}`
+                    );
+
+                activePage.classList.remove("hidden");
+
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            });
+        });
+
+        taskButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                selectedTask =
+                    button.dataset.task;
+
+                taskButtons.forEach((item) => {
+                    item.classList.remove("active");
+                });
+
+                button.classList.add("active");
+
+                updateThresholdBadge();
+            });
+        });
+
+        paperLink.addEventListener(
+            "click",
+            (event) => {
+                event.preventDefault();
+
+                alert(
+                    "It is pending temporarily."
+                );
+            }
+        );
+
+        smilesInput.addEventListener(
+            "keydown",
+            (event) => {
+                if (
+                    event.key === "Enter" &&
+                    !predictButton.disabled
+                ) {
+                    runPrediction();
+                }
+            }
+        );
+
+        predictButton.addEventListener(
+            "click",
+            runPrediction
+        );
+
+        function updateThresholdBadge() {
+            const threshold =
+                taskThresholds[selectedTask];
+
+            thresholdBadge.textContent =
+                `Stable threshold: ${threshold} min`;
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function setPredictionLoading(message) {
+            predictionResult.className =
+                "result-box visible loading";
+
+            predictionResult.innerHTML = `
+                <div class="spinner-row">
+                    <span class="spinner"></span>
+                    <span>${escapeHtml(message)}</span>
+                </div>
+            `;
+        }
+
+        function setPredictionError(message) {
+            predictionResult.className =
+                "result-box visible error";
+
+            predictionResult.innerHTML = `
+                <div class="result-status">
+                    Prediction failed
+                </div>
+
+                <div class="result-title">
+                    Request Error
+                </div>
+
+                <div class="result-details">
+                    ${escapeHtml(message)}
+                </div>
+            `;
+        }
+
+        function extractModelResult(
+            completedPayload
+        ) {
+            const outputData =
+                completedPayload?.output?.data;
+
+            if (
+                Array.isArray(outputData) &&
+                outputData.length > 0
+            ) {
+                return outputData[0];
+            }
+
+            if (
+                completedPayload?.output !== undefined
+            ) {
+                return completedPayload.output;
+            }
+
+            return completedPayload;
+        }
+
+        function normalizePrediction(
+            modelResult
+        ) {
+            let value;
+
+            if (
+                Array.isArray(
+                    modelResult?.predictions
+                )
+            ) {
+                value =
+                    modelResult.predictions[0];
+            } else if (
+                modelResult?.predictions !== undefined
+            ) {
+                value =
+                    modelResult.predictions;
+            } else if (
+                Array.isArray(modelResult)
+            ) {
+                value =
+                    modelResult[0];
+            } else {
+                value =
+                    modelResult;
+            }
+
+            if (
+                value === true ||
+                value === 1 ||
+                value === "1"
+            ) {
+                return 1;
+            }
+
+            if (
+                value === false ||
+                value === 0 ||
+                value === "0"
+            ) {
+                return 0;
+            }
+
+            return null;
+        }
+
+        function displayPrediction(
+            completedPayload
+        ) {
+            const modelResult =
+                extractModelResult(
+                    completedPayload
+                );
+
+            const prediction =
+                normalizePrediction(
+                    modelResult
+                );
+
+            const threshold =
+                taskThresholds[selectedTask];
+
+            if (prediction === 1) {
+                predictionResult.className =
+                    "result-box visible success";
+
+                predictionResult.innerHTML = `
+                    <div
+                        class="result-status"
+                        style="color:#15803d;"
+                    >
+                        ${escapeHtml(selectedTask)}
+                        prediction
+                    </div>
+
+                    <div
+                        class="result-title"
+                        style="color:#166534;"
+                    >
+                        Stable
+                    </div>
+
+                    <div class="result-details">
+                        Predicted class: 1 ·
+                        Recommended stable threshold:
+                        ${threshold} minutes
+                    </div>
+                `;
+
+                return;
+            }
+
+            if (prediction === 0) {
+                predictionResult.className =
+                    "result-box visible unstable";
+
+                predictionResult.innerHTML = `
+                    <div
+                        class="result-status"
+                        style="color:#b91c1c;"
+                    >
+                        ${escapeHtml(selectedTask)}
+                        prediction
+                    </div>
+
+                    <div
+                        class="result-title"
+                        style="color:#991b1b;"
+                    >
+                        Unstable
+                    </div>
+
+                    <div class="result-details">
+                        Predicted class: 0 ·
+                        Recommended stable threshold:
+                        ${threshold} minutes
+                    </div>
+                `;
+
+                return;
+            }
+
+            predictionResult.className =
+                "result-box visible loading";
+
+            predictionResult.innerHTML = `
+                <div class="result-status">
+                    Raw backend result
+                </div>
+
+                <pre><code>${escapeHtml(
+                    JSON.stringify(
+                        modelResult,
+                        null,
+                        2
+                    )
+                )}</code></pre>
+            `;
+        }
+
+        async function submitGradioJob(
+            smiles
+        ) {
+            const response =
+                await fetch(
+                    GRADIO_SUBMIT_URL,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            data: [
+                                [smiles],
+                                selectedTask,
+                                MODEL_REPRESENTATION,
+                                MODEL_NAME
+                            ]
+                        })
+                    }
+                );
+
+            const responseText =
+                await response.text();
+
+            if (!response.ok) {
+                throw new Error(
+                    `Submission failed (${response.status}): ` +
+                    responseText
+                );
+            }
+
+            let payload;
+
+            try {
+                payload =
+                    JSON.parse(responseText);
+            } catch {
+                throw new Error(
+                    "The submit endpoint returned a non-JSON response."
+                );
+            }
+
+            if (!payload.event_id) {
+                throw new Error(
+                    "The submit endpoint did not return an event_id."
+                );
+            }
+
+            return payload.event_id;
+        }
+
+        function parseSseBlock(
+            eventBlock
+        ) {
+            const dataLines =
+                eventBlock
+                    .split(/\r?\n/)
+                    .filter((line) =>
+                        line.startsWith("data:")
+                    )
+                    .map((line) =>
+                        line
+                            .slice(5)
+                            .trimStart()
+                    );
+
+            if (dataLines.length === 0) {
+                return null;
+            }
+
+            const rawData =
+                dataLines.join("\n");
+
+            try {
+                return JSON.parse(rawData);
+            } catch {
+                console.warn(
+                    "Unable to parse SSE event:",
+                    rawData
+                );
+
+                return null;
+            }
+        }
+
+        function processGradioEvent(
+            eventPayload
+        ) {
+            if (!eventPayload) {
+                return {
+                    completed: false,
+                    payload: null
+                };
+            }
+
+            console.log(
+                "Gradio SSE event:",
+                eventPayload
+            );
+
+            if (
+                eventPayload.msg ===
+                    "process_starts"
+            ) {
+                setPredictionLoading(
+                    "The model is running..."
+                );
+            }
+
+            if (
+                eventPayload.msg ===
+                    "process_generating"
+            ) {
+                setPredictionLoading(
+                    "Receiving prediction output..."
+                );
+            }
+
+            if (
+                eventPayload.msg ===
+                    "process_completed"
+            ) {
+                return {
+                    completed: true,
+                    payload: eventPayload
+                };
+            }
+
+            if (
+                eventPayload.msg ===
+                    "process_failed" ||
+                eventPayload.success === false
+            ) {
+                const backendMessage =
+                    eventPayload?.output?.error ??
+                    eventPayload?.error ??
+                    "The backend prediction failed.";
+
+                throw new Error(
+                    backendMessage
+                );
+            }
+
+            return {
+                completed: false,
+                payload: null
+            };
+        }
+
+        async function readGradioResult(eventId) {
+            const resultUrl =
+                `${GRADIO_SUBMIT_URL}/${encodeURIComponent(eventId)}`;
+
+            const response = await fetch(
+                resultUrl,
+                {
+                    method: "GET",
+
+                    headers: {
+                        Accept: "text/event-stream"
+                    },
+
+                    cache: "no-store"
+                }
+            );
+
+            if (!response.ok) {
+                const errorText =
+                    await response.text();
+
+                throw new Error(
+                    `Result request failed (${response.status}): ${errorText}`
+                );
+            }
+
+            if (!response.body) {
+                throw new Error(
+                    "The browser did not provide a readable response stream."
+                );
+            }
+
+            const reader =
+                response.body.getReader();
+
+            const decoder =
+                new TextDecoder("utf-8");
+
+            let buffer = "";
+
+            /**
+             * 解析一整个 SSE 事件块：
+             *
+             * event: complete
+             * data: [...]
+             */
+            function parseSseBlock(block) {
+                const lines =
+                    block.split(/\r?\n/);
+
+                const eventLine =
+                    lines.find(
+                        line => line.startsWith("event:")
+                    );
+
+                const eventName =
+                    eventLine
+                        ? eventLine.slice(6).trim()
+                        : "";
+
+                const dataText =
+                    lines
+                        .filter(
+                            line => line.startsWith("data:")
+                        )
+                        .map(
+                            line => line.slice(5).trimStart()
+                        )
+                        .join("\n");
+
+                let data = null;
+
+                if (dataText) {
+                    try {
+                        data =
+                            JSON.parse(dataText);
+                    } catch (error) {
+                        console.warn(
+                            "Unable to parse SSE data:",
+                            dataText,
+                            error
+                        );
+
+                        data =
+                            dataText;
+                    }
+                }
+
+                return {
+                    eventName,
+                    data
+                };
+            }
+
+            function handleSseBlock(block) {
+                if (!block.trim()) {
+                    return null;
+                }
+
+                const {
+                    eventName,
+                    data
+                } =
+                    parseSseBlock(block);
+
+                console.log(
+                    "Gradio SSE event:",
+                    eventName,
+                    data
+                );
+
+                if (
+                    eventName === "heartbeat"
+                ) {
+                    return null;
+                }
+
+                if (
+                    eventName === "generating"
+                ) {
+                    setPredictionLoading(
+                        "Receiving prediction output..."
+                    );
+
+                    return null;
+                }
+
+                if (
+                    eventName === "error"
+                ) {
+                    const errorMessage =
+                        data?.error ??
+                        data?.message ??
+                        (
+                            typeof data === "string"
+                                ? data
+                                : JSON.stringify(data)
+                        ) ??
+                        "The backend prediction failed.";
+
+                    throw new Error(errorMessage);
+                }
+
+                /*
+                * 当前 Gradio API 的正常结束格式：
+                *
+                * event: complete
+                * data: [{...}]
+                */
+                if (
+                    eventName === "complete"
+                ) {
+                    /*
+                    * 你的 gr.JSON 输出只有一个组件，因此 data 通常是：
+                    *
+                    * [
+                    *   {
+                    *     predictions: [1],
+                    *     meaning: {...}
+                    *   }
+                    * ]
+                    *
+                    * 这里直接取出第一个输出组件。
+                    */
+                    if (
+                        Array.isArray(data) &&
+                        data.length === 1
+                    ) {
+                        return {
+                            completed: true,
+                            result: data[0]
+                        };
+                    }
+
+                    return {
+                        completed: true,
+                        result: data
+                    };
+                }
+
+                /*
+                * 兼容你之前 Node.js 代码所假设的旧格式：
+                *
+                * data: {
+                *   msg: "process_completed",
+                *   output: ...
+                * }
+                */
+                if (
+                    data &&
+                    data.msg === "process_completed"
+                ) {
+                    const oldResult =
+                        data?.output?.data?.[0] ??
+                        data?.output ??
+                        data;
+
+                    return {
+                        completed: true,
+                        result: oldResult
+                    };
+                }
+
+                if (
+                    data &&
+                    data.msg === "process_failed"
+                ) {
+                    throw new Error(
+                        data?.output?.error ??
+                        data?.error ??
+                        "The backend prediction failed."
+                    );
+                }
+
+                return null;
+            }
+
+            while (true) {
+                const {
+                    done,
+                    value
+                } =
+                    await reader.read();
+
+                if (value) {
+                    buffer +=
+                        decoder.decode(
+                            value,
+                            {
+                                stream: !done
+                            }
+                        );
+                }
+
+                if (done) {
+                    buffer +=
+                        decoder.decode();
+                }
+
+                /*
+                * SSE 事件使用空行分隔。
+                * 最后一段可能还没有接收完整，因此保留在 buffer。
+                */
+                const blocks =
+                    buffer.split(/\r?\n\r?\n/);
+
+                buffer =
+                    blocks.pop() ?? "";
+
+                for (
+                    const block
+                    of blocks
+                ) {
+                    const parsed =
+                        handleSseBlock(block);
+
+                    if (
+                        parsed?.completed
+                    ) {
+                        await reader.cancel();
+
+                        return parsed.result;
+                    }
+                }
+
+                if (done) {
+                    break;
+                }
+            }
+
+            /*
+            * 有时最后一个 SSE 事件结尾没有额外空行，
+            * 再处理一次剩余内容。
+            */
+            if (buffer.trim()) {
+                const parsed =
+                    handleSseBlock(buffer);
+
+                if (
+                    parsed?.completed
+                ) {
+                    return parsed.result;
+                }
+            }
+
+            throw new Error(
+                "The result stream ended without an event: complete response."
+            );
+        }
+        async function runPrediction() {
+            const smiles =
+                smilesInput.value.trim();
+
+            if (!smiles) {
+                setPredictionError(
+                    "Please enter one SMILES string."
+                );
+
+                smilesInput.focus();
+
+                return;
+            }
+
+            /*
+             * The page accepts exactly one SMILES string.
+             * It is wrapped into a one-element array to match
+             * the backend API contract.
+             */
+            predictButton.disabled = true;
+            predictButton.textContent =
+                "Predicting...";
+
+            setPredictionLoading(
+                "Submitting prediction..."
+            );
+
+            try {
+                const eventId =
+                    await submitGradioJob(
+                        smiles
+                    );
+
+                setPredictionLoading(
+                    "Waiting for the model result..."
+                );
+
+                const completedPayload =
+                    await readGradioResult(
+                        eventId
+                    );
+
+                displayPrediction(
+                    completedPayload
+                );
+            } catch (error) {
+                console.error(error);
+
+                setPredictionError(
+                    error instanceof Error
+                        ? error.message
+                        : String(error)
+                );
+            } finally {
+                predictButton.disabled = false;
+                predictButton.textContent =
+                    "Predict Stability";
+            }
+        }
+
+        updateThresholdBadge();
+    </script>
+</body>
+</html>
