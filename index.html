@@ -1739,35 +1739,44 @@
 
                 <p>
                     The public prediction endpoint accepts an array of SMILES
-                    strings. The website submits exactly one SMILES string as
-                    a one-element array.
+                    strings and returns the prediction result directly as JSON.
+                    The website submits exactly one SMILES string as a
+                    one-element array.
                 </p>
 
-                <h4>Submit endpoint</h4>
+                <h4>Prediction endpoint</h4>
 
-                <pre><code>POST https://vicemusic5-kaust-smile-predict.hf.space/gradio_api/call/predict
+                <pre><code>POST https://yuan111.asia/predict
 
 Content-Type: application/json
 
 {
-  "data": [
-    ["CCO"],
-    "SIF",
-    "Morgan",
-    "lr"
-  ]
+  "smiles_values": ["CCO"],
+  "task": "SIF",
+  "representation": "Morgan",
+  "model_name": "lr"
 }</code></pre>
 
-                <h4>Read the asynchronous result</h4>
+                <h4>Example response</h4>
 
-                <pre><code>GET https://vicemusic5-kaust-smile-predict.hf.space/gradio_api/call/predict/{event_id}</code></pre>
+                <pre><code>{
+  "predictions": [1],
+  "meaning": {
+    "0": "不稳定",
+    "1": "稳定"
+  }
+}</code></pre>
 
-                <p>
-                    The second endpoint returns a Server-Sent Events stream.
-                    The final payload is the event whose
-                    <code>msg</code> field equals
-                    <code>process_completed</code>.
-                </p>
+                <a
+                    class="secondary-link"
+                    href="https://yuan111.asia/docs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open the Swagger API documentation
+                </a>
+
+                <br />
 
                 <a
                     class="secondary-link"
@@ -1943,11 +1952,8 @@ Content-Type: application/json
     <script>
         "use strict";
 
-        const SPACE_URL =
-            "https://vicemusic5-kaust-smile-predict.hf.space";
-
-        const GRADIO_SUBMIT_URL =
-            `${SPACE_URL}/gradio_api/call/predict`;
+        const PREDICT_API_URL =
+            "https://yuan111.asia/predict";
 
         const MODEL_REPRESENTATION =
             "Morgan";
@@ -2107,28 +2113,6 @@ Content-Type: application/json
             `;
         }
 
-        function extractModelResult(
-            completedPayload
-        ) {
-            const outputData =
-                completedPayload?.output?.data;
-
-            if (
-                Array.isArray(outputData) &&
-                outputData.length > 0
-            ) {
-                return outputData[0];
-            }
-
-            if (
-                completedPayload?.output !== undefined
-            ) {
-                return completedPayload.output;
-            }
-
-            return completedPayload;
-        }
-
         function normalizePrediction(
             modelResult
         ) {
@@ -2176,13 +2160,8 @@ Content-Type: application/json
         }
 
         function displayPrediction(
-            completedPayload
+            modelResult
         ) {
-            const modelResult =
-                extractModelResult(
-                    completedPayload
-                );
-
             const prediction =
                 normalizePrediction(
                     modelResult
@@ -2269,27 +2248,32 @@ Content-Type: application/json
             `;
         }
 
-        async function submitGradioJob(
+        async function requestPrediction(
             smiles
         ) {
             const response =
                 await fetch(
-                    GRADIO_SUBMIT_URL,
+                    PREDICT_API_URL,
                     {
                         method: "POST",
 
                         headers: {
                             "Content-Type":
+                                "application/json",
+                            Accept:
                                 "application/json"
                         },
 
                         body: JSON.stringify({
-                            data: [
-                                [smiles],
+                            smiles_values: [
+                                smiles
+                            ],
+                            task:
                                 selectedTask,
+                            representation:
                                 MODEL_REPRESENTATION,
+                            model_name:
                                 MODEL_NAME
-                            ]
                         })
                     }
                 );
@@ -2297,420 +2281,55 @@ Content-Type: application/json
             const responseText =
                 await response.text();
 
-            if (!response.ok) {
-                throw new Error(
-                    `Submission failed (${response.status}): ` +
-                    responseText
-                );
-            }
+            let payload = null;
 
-            let payload;
+            if (responseText) {
+                try {
+                    payload =
+                        JSON.parse(
+                            responseText
+                        );
+                } catch {
+                    if (!response.ok) {
+                        throw new Error(
+                            `Prediction failed (${response.status}): ` +
+                            responseText
+                        );
+                    }
 
-            try {
-                payload =
-                    JSON.parse(responseText);
-            } catch {
-                throw new Error(
-                    "The submit endpoint returned a non-JSON response."
-                );
-            }
-
-            if (!payload.event_id) {
-                throw new Error(
-                    "The submit endpoint did not return an event_id."
-                );
-            }
-
-            return payload.event_id;
-        }
-
-        function parseSseBlock(
-            eventBlock
-        ) {
-            const dataLines =
-                eventBlock
-                    .split(/\r?\n/)
-                    .filter((line) =>
-                        line.startsWith("data:")
-                    )
-                    .map((line) =>
-                        line
-                            .slice(5)
-                            .trimStart()
+                    throw new Error(
+                        "The prediction endpoint returned a non-JSON response."
                     );
-
-            if (dataLines.length === 0) {
-                return null;
+                }
             }
 
-            const rawData =
-                dataLines.join("\n");
-
-            try {
-                return JSON.parse(rawData);
-            } catch {
-                console.warn(
-                    "Unable to parse SSE event:",
-                    rawData
-                );
-
-                return null;
-            }
-        }
-
-        function processGradioEvent(
-            eventPayload
-        ) {
-            if (!eventPayload) {
-                return {
-                    completed: false,
-                    payload: null
-                };
-            }
-
-            console.log(
-                "Gradio SSE event:",
-                eventPayload
-            );
-
-            if (
-                eventPayload.msg ===
-                    "process_starts"
-            ) {
-                setPredictionLoading(
-                    "The model is running..."
-                );
-            }
-
-            if (
-                eventPayload.msg ===
-                    "process_generating"
-            ) {
-                setPredictionLoading(
-                    "Receiving prediction output..."
-                );
-            }
-
-            if (
-                eventPayload.msg ===
-                    "process_completed"
-            ) {
-                return {
-                    completed: true,
-                    payload: eventPayload
-                };
-            }
-
-            if (
-                eventPayload.msg ===
-                    "process_failed" ||
-                eventPayload.success === false
-            ) {
+            if (!response.ok) {
                 const backendMessage =
-                    eventPayload?.output?.error ??
-                    eventPayload?.error ??
+                    payload?.detail ??
+                    payload?.message ??
+                    payload?.error ??
+                    responseText ??
                     "The backend prediction failed.";
 
                 throw new Error(
-                    backendMessage
+                    `Prediction failed (${response.status}): ` +
+                    (
+                        typeof backendMessage === "string"
+                            ? backendMessage
+                            : JSON.stringify(backendMessage)
+                    )
                 );
             }
 
-            return {
-                completed: false,
-                payload: null
-            };
+            if (!payload) {
+                throw new Error(
+                    "The prediction endpoint returned an empty response."
+                );
+            }
+
+            return payload;
         }
 
-        async function readGradioResult(eventId) {
-            const resultUrl =
-                `${GRADIO_SUBMIT_URL}/${encodeURIComponent(eventId)}`;
-
-            const response = await fetch(
-                resultUrl,
-                {
-                    method: "GET",
-
-                    headers: {
-                        Accept: "text/event-stream"
-                    },
-
-                    cache: "no-store"
-                }
-            );
-
-            if (!response.ok) {
-                const errorText =
-                    await response.text();
-
-                throw new Error(
-                    `Result request failed (${response.status}): ${errorText}`
-                );
-            }
-
-            if (!response.body) {
-                throw new Error(
-                    "The browser did not provide a readable response stream."
-                );
-            }
-
-            const reader =
-                response.body.getReader();
-
-            const decoder =
-                new TextDecoder("utf-8");
-
-            let buffer = "";
-
-            /**
-             * 解析一整个 SSE 事件块：
-             *
-             * event: complete
-             * data: [...]
-             */
-            function parseSseBlock(block) {
-                const lines =
-                    block.split(/\r?\n/);
-
-                const eventLine =
-                    lines.find(
-                        line => line.startsWith("event:")
-                    );
-
-                const eventName =
-                    eventLine
-                        ? eventLine.slice(6).trim()
-                        : "";
-
-                const dataText =
-                    lines
-                        .filter(
-                            line => line.startsWith("data:")
-                        )
-                        .map(
-                            line => line.slice(5).trimStart()
-                        )
-                        .join("\n");
-
-                let data = null;
-
-                if (dataText) {
-                    try {
-                        data =
-                            JSON.parse(dataText);
-                    } catch (error) {
-                        console.warn(
-                            "Unable to parse SSE data:",
-                            dataText,
-                            error
-                        );
-
-                        data =
-                            dataText;
-                    }
-                }
-
-                return {
-                    eventName,
-                    data
-                };
-            }
-
-            function handleSseBlock(block) {
-                if (!block.trim()) {
-                    return null;
-                }
-
-                const {
-                    eventName,
-                    data
-                } =
-                    parseSseBlock(block);
-
-                console.log(
-                    "Gradio SSE event:",
-                    eventName,
-                    data
-                );
-
-                if (
-                    eventName === "heartbeat"
-                ) {
-                    return null;
-                }
-
-                if (
-                    eventName === "generating"
-                ) {
-                    setPredictionLoading(
-                        "Receiving prediction output..."
-                    );
-
-                    return null;
-                }
-
-                if (
-                    eventName === "error"
-                ) {
-                    const errorMessage =
-                        data?.error ??
-                        data?.message ??
-                        (
-                            typeof data === "string"
-                                ? data
-                                : JSON.stringify(data)
-                        ) ??
-                        "The backend prediction failed.";
-
-                    throw new Error(errorMessage);
-                }
-
-                /*
-                * 当前 Gradio API 的正常结束格式：
-                *
-                * event: complete
-                * data: [{...}]
-                */
-                if (
-                    eventName === "complete"
-                ) {
-                    /*
-                    * 你的 gr.JSON 输出只有一个组件，因此 data 通常是：
-                    *
-                    * [
-                    *   {
-                    *     predictions: [1],
-                    *     meaning: {...}
-                    *   }
-                    * ]
-                    *
-                    * 这里直接取出第一个输出组件。
-                    */
-                    if (
-                        Array.isArray(data) &&
-                        data.length === 1
-                    ) {
-                        return {
-                            completed: true,
-                            result: data[0]
-                        };
-                    }
-
-                    return {
-                        completed: true,
-                        result: data
-                    };
-                }
-
-                /*
-                * 兼容你之前 Node.js 代码所假设的旧格式：
-                *
-                * data: {
-                *   msg: "process_completed",
-                *   output: ...
-                * }
-                */
-                if (
-                    data &&
-                    data.msg === "process_completed"
-                ) {
-                    const oldResult =
-                        data?.output?.data?.[0] ??
-                        data?.output ??
-                        data;
-
-                    return {
-                        completed: true,
-                        result: oldResult
-                    };
-                }
-
-                if (
-                    data &&
-                    data.msg === "process_failed"
-                ) {
-                    throw new Error(
-                        data?.output?.error ??
-                        data?.error ??
-                        "The backend prediction failed."
-                    );
-                }
-
-                return null;
-            }
-
-            while (true) {
-                const {
-                    done,
-                    value
-                } =
-                    await reader.read();
-
-                if (value) {
-                    buffer +=
-                        decoder.decode(
-                            value,
-                            {
-                                stream: !done
-                            }
-                        );
-                }
-
-                if (done) {
-                    buffer +=
-                        decoder.decode();
-                }
-
-                /*
-                * SSE 事件使用空行分隔。
-                * 最后一段可能还没有接收完整，因此保留在 buffer。
-                */
-                const blocks =
-                    buffer.split(/\r?\n\r?\n/);
-
-                buffer =
-                    blocks.pop() ?? "";
-
-                for (
-                    const block
-                    of blocks
-                ) {
-                    const parsed =
-                        handleSseBlock(block);
-
-                    if (
-                        parsed?.completed
-                    ) {
-                        await reader.cancel();
-
-                        return parsed.result;
-                    }
-                }
-
-                if (done) {
-                    break;
-                }
-            }
-
-            /*
-            * 有时最后一个 SSE 事件结尾没有额外空行，
-            * 再处理一次剩余内容。
-            */
-            if (buffer.trim()) {
-                const parsed =
-                    handleSseBlock(buffer);
-
-                if (
-                    parsed?.completed
-                ) {
-                    return parsed.result;
-                }
-            }
-
-            throw new Error(
-                "The result stream ended without an event: complete response."
-            );
-        }
         async function runPrediction() {
             const smiles =
                 smilesInput.value.trim();
@@ -2739,22 +2358,13 @@ Content-Type: application/json
             );
 
             try {
-                const eventId =
-                    await submitGradioJob(
+                const predictionPayload =
+                    await requestPrediction(
                         smiles
                     );
 
-                setPredictionLoading(
-                    "Waiting for the model result..."
-                );
-
-                const completedPayload =
-                    await readGradioResult(
-                        eventId
-                    );
-
                 displayPrediction(
-                    completedPayload
+                    predictionPayload
                 );
             } catch (error) {
                 console.error(error);
